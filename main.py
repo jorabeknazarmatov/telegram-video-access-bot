@@ -9,12 +9,12 @@ from handlers import admin_handler, user_handler
 
 dotenv.load_dotenv()
 
-logger = logging.getLogger()
+# logger = logging.getLogger()
 
 router = Router()
 
 async def main():
-    logging.basicConfig(filename='myapp.log', level=logging.INFO)
+    # logging.basicConfig(filename='myapp.log', level=logging.INFO)
     logger.info('Started')
     bot = Bot(os.getenv('BOT_TOKEN'))
     dp = Dispatcher()
