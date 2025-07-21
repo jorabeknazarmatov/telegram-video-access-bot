@@ -35,7 +35,7 @@ async def start_command(message: Message, role: str):
     admins = await bot.get_chat_administrators(CHAT_ID)
     admin_ids = [admin.user.id for admin in admins]
     
-    if message.from_user.id in admin_ids and  CHAT_ID == message.chat.id:
+    if message.from_user.id in admin_ids:
         await message.answer(f'👤 Welcome Admin {message.from_user.full_name}!', reply_markup=keyboard.admin_control_en)
         return
         
