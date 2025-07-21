@@ -1,8 +1,2 @@
-<<<<<<< HEAD
 aiogram
 python-dotenv
-=======
-aiogram==3.0.0
-python-dotenv==1.0.0
-pydantic==2.6.4
->>>>>>> f211fa5724daa23acc282915c7b6a08da18071aa
