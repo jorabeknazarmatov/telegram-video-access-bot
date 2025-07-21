@@ -1,10 +1,11 @@
 import os, dotenv
 from aiogram import Router, html, F, Bot
-from aiogram.types import Message, CallbackQuery
+from aiogram.types import Message, CallbackQuery, ReplyKeyboardRemove
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 from keyboards import keyboard
 from db import database, key_generate
+from main import CHAT_ID, CHANNEL_ID
 
 
 dotenv.load_dotenv()
@@ -24,51 +25,67 @@ class FormMovie(StatesGroup):
 async def all_user(callback: CallbackQuery):
     await callback.answer(f"👥 All users: {len(database.get_all_user())}")
 
+@router.callback_query(F.data == 'find_user')
+async def find_user(callback: CallbackQuery):
+    await callback.answer("Xozirda ishlab chiqish jarayonida.")
+
 @router.callback_query(F.data == 'all_movies')
 async def get_all_movies(callback: CallbackQuery):
     movies = database.get_all_movies()
     await bot.send_message(callback.message.chat.id, "\n".join(f"• {k[1]} ⸺ {k[0]}" for k in movies))
 
+@router.callback_query(F.data == 'find_movies')
+async def find_muvie(callback: CallbackQuery):
+    await callback.answer("Xozirda ishlab chiqish jarayonida.")
+
+@router.callback_query(F.data == 'post_channel')
+async def add_posts(callback: CallbackQuery):
+    await callback.answer("Xozirda ishlab chiqish jarayonida.")
+
 # Start FormMovie
 @router.callback_query(F.data == "add_movie")
 async def form_movie(callback: CallbackQuery, state: FSMContext):
-    await bot.send_message(callback.message.chat.id, f'Submit the film. (The file must not exceed 2 GB)')
+    await bot.send_message(callback.message.chat.id, f'Submit the film. (The file must not exceed 2 GB)', reply_markup=keyboard.cancel_keyboard)
     await state.set_state(FormMovie.movie)
 
 # Set movie and poster
 @router.message(FormMovie.movie)
 async def add_movie(message: Message, state: FSMContext):
     if not message.video:
-        await message.answer("❗️ Please send video file.")
+        await message.answer("❗️ Please send video file.", reply_markup=keyboard.cancel_keyboard)
         return
+
+    await state.update_data(movie = message.video.file_id)
     
-    if message.video.thumbnail:
-        await state.update_data(poster = message.video.thumbnail.file_id)
-        await message.answer("🎯 Poster was saved.")
-    else:
-        await message.answer("⚠️ Poster was not found.")
-    
-    video_file_id = message.video.file_id
-    await state.update_data(movie = video_file_id)
-    
-    await state.set_state(FormMovie.name)
-    await message.answer("Send name of the file.")
+    await state.set_state(FormMovie.poster)
+    await message.answer("Send poster of the file.", reply_markup=keyboard.cancel_keyboard)
+
+
+# Set poster
+@router.message(FormMovie.poster)
+async def set_poster(message: Message, state: FSMContext):
+    if not message.video:
+        await message.answer("❗️ Please send foto file for poster.", reply_markup=keyboard.cancel_keyboard)
+        return
+    await state.update_data(poster = message.photo[0].file_id)
+    await bot.send_message("Send name of the file.", reply_markup=keyboard.cancel_keyboard)
+    await state.set_data(FormMovie.name)
 
 # Set name
 @router.message(FormMovie.name)
 async def set_name(message: Message, state: FSMContext):
     if not message.text:
-        await message.answer("❗️ Please send video name.")
+        await message.answer("❗️ Please send video name.", reply_markup=keyboard.cancel_keyboard)
         return
     await state.update_data(name = message.text)
-    await message.answer('Send description of the file.')
+    await message.answer('Send description of the file.', reply_markup=keyboard.cancel_keyboard)
     await state.set_state(FormMovie.desc)
 
 # Set description
 @router.message(FormMovie.desc)
 async def set_name(message: Message, state: FSMContext):
     if not message.text:
-        await message.answer("❗️ Please send desctiption name.")
+        await message.answer("❗️ Please send desctiption name.", reply_markup=keyboard.cancel_keyboard)
         return
     await state.update_data(desc = message.text)
     await message.answer('Send category of the file.', reply_markup=keyboard.build_category_keyboard())
@@ -117,7 +134,7 @@ async def set_categories(callback: CallbackQuery, state: FSMContext):
 @router.message(FormMovie.actors)
 async def set_actors(message: Message, state: FSMContext):
     if not message.text:
-        await message.answer("❗️ Please, enter the list of actors in text form. (with commas): Tom cruise, Tom Hanks")
+        await message.answer("❗️ Please, enter the list of actors in text form. (with commas): Tom cruise, Tom Hanks", reply_markup=keyboard.cancel_keyboard)
         return
     await state.update_data(actors=message.text)
     
@@ -127,8 +144,9 @@ async def set_actors(message: Message, state: FSMContext):
     # Added movie to db
     database.add_movie(key, data.get('name'), data.get('movie'), data.get('poster'), data.get('desc'), data.get('actors', []), data.get('categories', []))
 
+
+    await message.answer(f"✅ Success!", reply_markup=ReplyKeyboardRemove())
     await message.answer(
-        f"✅ Success!\n\n"
         f"Key: {html.bold(key)}\n"
         f"🎞 Name: {data.get('name')}\n"
         f"📝 Description: {data.get('desc')}\n"
@@ -137,3 +155,9 @@ async def set_actors(message: Message, state: FSMContext):
     , reply_markup=keyboard.admin_control_en)
     
     await state.clear()
+
+
+@router.message(F.text == '❌ Cancel')
+async def click_cancel(message: Message, state: FSMContext):
+    await state.clear()
+    await message.answer("❌ Jarayon bekor qilindi.", reply_markup=ReplyKeyboardRemove())

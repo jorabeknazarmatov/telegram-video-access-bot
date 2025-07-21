@@ -1,13 +1,43 @@
-from aiogram.types import ReplyKeyboardMarkup, ReplyKeyboardRemove, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 
 admin_control_en = InlineKeyboardMarkup(
-    inline_keyboard = [
-        [InlineKeyboardButton(text='👥 All users', callback_data='users')],
-        [InlineKeyboardButton(text='🎞 All movies', callback_data='all_movies')],
-        [InlineKeyboardButton(text='🎥 Add movie', callback_data='add_movie')]
-    ], 
+    inline_keyboard=[
+        # 👥 User Boshqaruv
+        [
+            InlineKeyboardButton(text='👥 All Users', callback_data='users'),
+            InlineKeyboardButton(text='🔍 Find User', callback_data='find_user'),
+        ],
+        # 🎞 Film Boshqaruv
+        [
+            InlineKeyboardButton(text='🎞 All Movies', callback_data='all_movies'),
+            InlineKeyboardButton(text='🔎 Find Movie', callback_data='find_movies'),
+        ],
+        [
+            InlineKeyboardButton(text='➕ Add Movie', callback_data='add_movie'),
+        ],
+        # 📣 Chiqish (optional)
+        [
+            InlineKeyboardButton(text='📣 Post in the channel', callback_data='post_channel')
+        ]
+    ]
+)
+
+find_user = InlineKeyboardMarkup(
+    inline_keyboard= [
+        [InlineKeyboardButton(text='')]
+    ]
+)
+
+
+cancel_keyboard = ReplyKeyboardMarkup(
+    keyboard=[
+        [KeyboardButton(text="❌ Cancel")]
+    ],
+    resize_keyboard=True,
+    one_time_keyboard=True,  # bosilgach, avtomatik yo‘qoladi
+    input_field_placeholder="Istalgan vaqtda bekor qilish mumkin"
 )
 
 categories = [
