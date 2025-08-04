@@ -16,6 +16,7 @@ admin_control_en = InlineKeyboardMarkup(
         ],
         [
             InlineKeyboardButton(text='➕ Add Movie', callback_data='add_movie'),
+            InlineKeyboardButton(text='➕ Add Movies with JSON', callback_data='add_movies')
         ],
         # 📣 Chiqish (optional)
         [
@@ -24,9 +25,12 @@ admin_control_en = InlineKeyboardMarkup(
     ]
 )
 
-find_user = InlineKeyboardMarkup(
-    inline_keyboard= [
-        [InlineKeyboardButton(text='')]
+select_btn = InlineKeyboardMarkup(
+    inline_keyboard = [
+        [
+            InlineKeyboardButton(text='Yes', callback_data='dict_yes'),
+            InlineKeyboardButton(text='No', callback_data='dict_no')
+        ]
     ]
 )
 
