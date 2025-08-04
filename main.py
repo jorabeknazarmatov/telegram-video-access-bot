@@ -31,7 +31,7 @@ async def main():
     await dp.start_polling(bot)
 
 @router.message(CommandStart)
-async def start_command(message: Message, role: str):
+async def start_command(message: Message):
     admins = await bot.get_chat_administrators(CHAT_ID)
     admin_ids = [admin.user.id for admin in admins]
     
