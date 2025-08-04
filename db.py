@@ -36,19 +36,93 @@ class Users_DB:
             watched BOOLEAN NOT NULL DEFAULT FALSE
         )
         """)
+
+        # type = film or serial
+        self.cur.execute("""
+        CREATE TABLE IF NOT EXISTS movies_info (
+            key INTEGER PRIMARY KEY AUTOINCREMENT,
+            imdb REAL,
+            kinopoisk REAL,
+            duration INTEGER NOT NULL,
+            country TEXT NOT NULL,
+            type TEXT NOT NULL
+        )
+        """)
+
         self.con.commit()
 
-    def add_movie(self, key: str, name: str, movie_id: str, poster_id: str, desc: str, actors: list, category: list):
-        self.cur.execute(f'INSERT INTO all_movie (key, name, movie_id, poster, desc, actors, category) VALUES (?, ?, ?, ?, ?, ?, ?)', (key, name, movie_id, poster_id, desc, json.dumps(actors), json.dumps(category)))
-        self.con.commit()
+    def add_movie(self, data: dict):
+        try:
+            actors = json.dumps(data.get('actors', []))
+            category = json.dumps(data.get('category', []))
+
+            self.cur.execute(f"""
+            INSERT INTO all_movie (key, name, movie_id, poster, desc, actors, category)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            """,
+            (data['key'], data['name'], data['movie_id'], data['poster_id'], data['desc'], actors, category))
+            
+            self.con.commit()
+        except KeyError as e:
+            print(f"❌ There is no required field: {e}")
+        except sqlite3.Error as e:
+            print(f"❌ SQL error: {e}")
+        except Exception as e:
+            print(f"❌ Unknown error: {e}")
+
+    def add_info(self, data: dict):
+        try:
+            self.cur.execute("""
+        INSERT INTO movies_info (key, imdb, kinopoisk, duration, country, type)
+        VALUES (?, ?, ?, ?, ?, ?)
+        """,
+        (data['key'], data['imdb'], data['kinopoisk'], data['duration'], data['country'], data['type'])
+        )
+        except KeyError as e:
+            print(f"❌ There is no required field: {e}")
+        except sqlite3.Error as e:
+            print(f"❌ SQL error: {e}")
+        except Exception as e:
+            print(f"❌ Unknown error: {e}")
+
     
     def get_all_movies(self):
         self.cur.execute("SELECT * FROM all_movie")
         return self.cur.fetchall()
     
     def get_movie(self, key: str):
-        self.cur.execute(f'SELECT * FROM all_movie WHERE key = ?', (key,))
-        return self.cur.fetchone()
+        self.cur.execute("""
+            SELECT 
+                all_movie.key,
+                all_movie.name,
+                all_movie.movie_id,
+                all_movie.poster,
+                all_movie.desc,
+                all_movie.actors,
+                all_movie.category,
+                movies_info.imdb,
+                movies_info.kinopoisk,
+                movies_info.duration,
+                movies_info.country
+            FROM all_movie
+            JOIN movies_info ON all_movie.key = movies_info.key
+            WHERE all_movie.key = ?
+        """, (key,))
+        data = self.cur.fetchone()
+
+        return {
+            'key' : data[0],
+            'name' : data[1],
+            'movie_id' : data[2],
+            'poster' : data[3],
+            'desc' : data[4],
+            'actors' : data[5],
+            'category' : data[6],
+            'imdb' : data[7],
+            'kinopoisk' : data[8],
+            'duration' : data[9],
+            'country' : data[10]
+        } 
 
     def mark_movie_as_watched(self, user_id: int, key: str):
         # Tekshiramiz: yozuv mavjudmi?
