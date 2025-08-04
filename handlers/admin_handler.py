@@ -1,4 +1,4 @@
-import os, dotenv
+import os, dotenv, json
 from aiogram import Router, html, F, Bot
 from aiogram.types import Message, CallbackQuery, ReplyKeyboardRemove
 from aiogram.filters import Command
@@ -16,6 +16,7 @@ router = Router()
 class FormMovie(StatesGroup):
     movie = State()
     poster = State()
+    all_info = State()
     name = State()
     desc = State()
     category = State()
@@ -81,8 +82,75 @@ async def set_poster(message: Message, state: FSMContext):
         await message.answer("❗️ Please send foto file for poster.")
         return
     await state.update_data(poster = message.photo[0].file_id)
-    await bot.send_message("Send name of the file.")
-    await state.set_data(FormMovie.name)
+    await bot.send_message(message.chat.id, "Is there a data JSON?", reply_markup=keyboard.select_btn)
+
+@router.callback_query(F.data == 'dict_yes')
+async def set_dict(callback: CallbackQuery):
+    await bot.send_message(callback.message.chat.id, 'Send JSON file.')
+    await bot.send_message(callback.message.chat.id, 
+                           """
+                            Template:
+                            {
+                                'key' : 'GC_T_',
+                                'name' : 'Film name (year)',
+                                'desc' : 'Description for film.',
+                                'actors' : 'Tom Henks, Rowan Atkinson',
+                                'category' : ['Drama', 'Jinoyat'],
+                                'imdb' : 9.3,
+                                'kinopoisk' : 9.1,
+                                'duration' : 142,
+                                'country' : 'USA, Canada'
+                            }
+                            """
+                           )
+    
+    await FSMContext.set_data(FormMovie.all_info)
+
+@router.callback_query(F.data == 'dict_no')
+async def no_dict(callback: CallbackQuery):
+    await bot.send_message(callback.message.chat.id, 'Send name file.')
+    await FSMContext.set_data(FormMovie.name) 
+    
+
+@router.message(FormMovie.all_info)
+async def set_movie_info(message: Message, state: FSMContext):
+    if not F.document.mime_type == 'aplication/json':
+        await message.answer("❗️ Please send JSON file.")
+        return
+
+    document = message.document
+    
+    file = await message.bot.get_file(document.file_id)
+    file_path = file.file_path
+    file_data = await message.bot.download_file(file_path)
+
+    json_content = await file_data.read()
+
+    try:
+        movie = json.loads(json_content)
+        stat_data = await state.get_data()
+
+        database.add_movie({
+            'key' : movie['key'],
+            'name' : movie['name'],
+            'movie_id' : stat_data.get('movie'),
+            'poster' : stat_data.get('poster'),
+            'desc' : movie['desc'],
+            'actors' : movie['actors'],
+            'category': movie['category']                
+        })
+        database.add_info({
+            'key' : movie['key'],
+            'imdb' : movie['imdb'],
+            'kinopoisk':movie['kinopoisk'],
+            'duration' : movie['duration'],
+            'country' :movie['country']
+        })
+        await state.clear()
+        await message.answer(f"✅ film muvaffaqiyatli yuklandi!", reply_markup=keyboard.admin_control_en)
+
+    except Exception as e:
+        await message.answer("❌ JSON formatda xatolik bor: " + str(e))
 
 # Set name
 @router.message(FormMovie.name)
