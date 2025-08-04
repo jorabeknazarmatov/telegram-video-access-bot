@@ -17,11 +17,16 @@ async def movie_code(message: Message):
         return
     else:
         await message.answer_video(
-            video=movie[2],
-            caption=(
-                f"🎬 {html.bold(movie[1])}\n"
-                f"📝 {movie[4]}\n\n"
-                f"{" | ".join(f'#{cat}' for cat in json.loads(movie[6]))}"
-            ),
-            parse_mode="HTML"
-        )
+        video=movie['movie_id'],
+        caption=(
+            f"📽 {html.bold(movie['name'])}\n"
+            f"⭐️ IMDb: {movie['imdb']}\n"
+            f"🕒 Davomiyligi: {movie['duration'] // 60} soat {movie['duration'] % 60} daqiqa\n\n"
+            f"{movie['desc']}\n\n"
+            f"{' | '.join(f'#{cat}' for cat in json.loads(movie['category']))}\n\n"
+            f"🎁 Tomosha qilish uchun quyidagi maxfiy kodni botga yuboring: <code>{movie['key']}</code>\n\n"
+            f"➡️ 🎬 {html.link('Ko‘rish', 'https://t.me/vaultfilmbot')}\n"
+            f"📌 Kanalga obuna bo‘ling: @Premium_Kino_Club"
+        ),
+        parse_mode="HTML"
+    )
