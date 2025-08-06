@@ -34,6 +34,13 @@ select_btn = InlineKeyboardMarkup(
     ]
 )
 
+join_channel = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [
+            InlineKeyboardButton(text='📢 Kanalga a’zo bo‘lish', url='https://t.me/Premium_Kino_Club')
+        ]
+    ]
+)
 
 cancel_keyboard = ReplyKeyboardMarkup(
     keyboard=[
