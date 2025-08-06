@@ -1,5 +1,6 @@
-from aiogram import Bot, Dispatcher, html, Router
-from aiogram.types import Message, CallbackQuery 
+from aiogram import Bot, Dispatcher, Router
+from aiogram.enums.chat_member_status import ChatMemberStatus
+from aiogram.types import Message 
 import os, asyncio, logging, dotenv
 from middleware import RoleCheckerMiddleware
 from aiogram.filters import CommandStart
@@ -11,7 +12,6 @@ dotenv.load_dotenv()
 
 logger = logging.getLogger()
 
-CHANNEL_ID = os.getenv('CHANNEL_ID')
 CHAT_ID = os.getenv('CHAT_ID')
 bot = Bot(os.getenv('BOT_TOKEN'))
 router = Router()
@@ -32,18 +32,23 @@ async def main():
 
 @router.message(CommandStart)
 async def start_command(message: Message):
-    admins = await bot.get_chat_administrators(CHAT_ID)
-    admin_ids = [admin.user.id for admin in admins]
-    
-    if message.from_user.id in admin_ids:
-        await message.answer(f'👤 Welcome Admin {message.from_user.full_name}!', reply_markup=keyboard.admin_control_en)
-        return
-        
-    if not database.find_user(message.from_user.id):
-        database.add_user(message.from_user.id, message.from_user.full_name)
+    user_id = message.from_user.id
+    try:
+        member = await bot.get_chat_member(chat_id=os.getenv('CHANNEL_ID'), user_id=user_id)
 
-    await message.answer(f'👤 Welcome {message.from_user.full_name}!')
-    await message.answer(f"🔐 Send key:")
+        if member.status in [ChatMemberStatus.CREATOR, ChatMemberStatus.ADMINISTRATOR]:
+            await message.answer(f'👤 Welcome Admin {message.from_user.full_name}!', reply_markup=keyboard.admin_control_en)
+            return
+        elif member.status == ChatMemberStatus.MEMBER:
+            if not database.find_user(message.from_user.id):
+                database.add_user(message.from_user.id, message.from_user.full_name)
+            await message.answer(f'👤 Salom {message.from_user.full_name}!')
+            await message.answer(f"🔐 Kino kalitini yubor:")
+        else:
+            await message.answer("❗ Siz kanalga a’zo emassiz. Iltimos, avval kanalga a’zo bo‘ling.", reply_markup=keyboard.join_channel)
+            
+    except Exception as e:
+        await message.answer("⚠️ Kanal tekshiruvda xatolik: " + str(e))
 
 if __name__ == '__main__':
     asyncio.run(main())
