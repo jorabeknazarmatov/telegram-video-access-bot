@@ -21,5 +21,5 @@ async def find_user(callback: CallbackQuery):
 @router.callback_query(F.data == 'all_movies')
 async def get_all_movies(callback: CallbackQuery):
     movies = database.get_all_movies()
-    await bot.send_message(callback.message.chat.id, "\n".join(f"• {k[1]} ⸺ {k[0]}" for k in movies))
+    await bot.send_message(callback.message.chat.id, "\n".join(f"• {k['name']} ⸺ {k['key']}" for k in movies))
 
