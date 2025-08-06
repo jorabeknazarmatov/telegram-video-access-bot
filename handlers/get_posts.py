@@ -10,7 +10,7 @@ router = Router()
 @router.callback_query(F.data == 'post_channel')
 async def add_posts(callback: CallbackQuery):
     all_movies = database.get_all_movies()
-    for movie in random.sample(all_movies, 1):
+    for movie in random.sample(all_movies, 5):
         await bot.send_photo(
             chat_id= os.getenv('CHANNEL_ID'),
             photo=movie['poster_id'],
