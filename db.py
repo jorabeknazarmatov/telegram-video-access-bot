@@ -53,8 +53,8 @@ class Users_DB:
 
     def add_movie(self, data: dict):
         try:
-            actors = json.dumps(data.get('actors', []))
-            category = json.dumps(data.get('category', []))
+            actors = json.dumps(data.get('actors', []), ensure_ascii=False)
+            category = json.dumps(data.get('category', []), ensure_ascii=False)
 
             self.cur.execute(f"""
             INSERT INTO all_movie (key, name, movie_id, poster, desc, actors, category)
