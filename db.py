@@ -4,6 +4,7 @@ dotenv.load_dotenv()
 
 class Users_DB:
     def __init__(self):
+        self.post = ['key','name','movie_id','poster_id','desc','actors','category','imdb','kinopoisk','duration','country']
         self.con = sqlite3.connect("data.db")
         self.cur = self.con.cursor()
         self.cur.execute("""
@@ -30,7 +31,7 @@ class Users_DB:
 
         self.cur.execute("""
         CREATE TABLE IF NOT EXISTS watched_movies (
-            key INTEGER PRIMARY KEY AUTOINCREMENT,
+            key TEXT NOT NULL UNIQUE,
             user_id INTEGER REFERENCES users(id),
             movie_id TEXT NOT NULL UNIQUE,
             watched BOOLEAN NOT NULL DEFAULT FALSE
@@ -40,12 +41,11 @@ class Users_DB:
         # type = film or serial
         self.cur.execute("""
         CREATE TABLE IF NOT EXISTS movies_info (
-            key INTEGER PRIMARY KEY AUTOINCREMENT,
+            key TEXT NOT NULL UNIQUE,
             imdb REAL,
             kinopoisk REAL,
             duration INTEGER NOT NULL,
-            country TEXT NOT NULL,
-            type TEXT NOT NULL
+            country TEXT NOT NULL
         )
         """)
 
@@ -73,11 +73,12 @@ class Users_DB:
     def add_info(self, data: dict):
         try:
             self.cur.execute("""
-        INSERT INTO movies_info (key, imdb, kinopoisk, duration, country, type)
-        VALUES (?, ?, ?, ?, ?, ?)
+        INSERT INTO movies_info (key, imdb, kinopoisk, duration, country)
+        VALUES (?, ?, ?, ?, ?)
         """,
-        (data['key'], data['imdb'], data['kinopoisk'], data['duration'], data['country'], data['type'])
+        (data['key'], float(data['imdb']), float(data['kinopoisk']), int(data['duration']), data['country'])
         )
+            self.con.commit()
         except KeyError as e:
             print(f"❌ There is no required field: {e}")
         except sqlite3.Error as e:
@@ -87,8 +88,29 @@ class Users_DB:
 
     
     def get_all_movies(self):
-        self.cur.execute("SELECT * FROM all_movie")
-        return self.cur.fetchall()
+        self.cur.execute("""
+            SELECT 
+                all_movie.key,
+                all_movie.name,
+                all_movie.movie_id,
+                all_movie.poster,
+                all_movie.desc,
+                all_movie.actors,
+                all_movie.category,
+                movies_info.imdb,
+                movies_info.kinopoisk,
+                movies_info.duration,
+                movies_info.country
+            FROM all_movie
+            JOIN movies_info ON all_movie.key = movies_info.key
+        """)
+        movies = []
+                
+        for row in self.cur.fetchall():
+            movie = dict(zip(self.post, row))
+            movies.append(movie)
+            
+        return movies
     
     def get_movie(self, key: str):
         self.cur.execute("""
@@ -109,20 +131,9 @@ class Users_DB:
             WHERE all_movie.key = ?
         """, (key,))
         data = self.cur.fetchone()
-
-        return {
-            'key' : data[0],
-            'name' : data[1],
-            'movie_id' : data[2],
-            'poster' : data[3],
-            'desc' : data[4],
-            'actors' : data[5],
-            'category' : data[6],
-            'imdb' : data[7],
-            'kinopoisk' : data[8],
-            'duration' : data[9],
-            'country' : data[10]
-        } 
+        if data is None:
+            return None
+        return dict(zip(self.post, data)) 
 
     def mark_movie_as_watched(self, user_id: int, key: str):
         # Tekshiramiz: yozuv mavjudmi?
@@ -175,15 +186,13 @@ class Users_DB:
 database = Users_DB()
 
 def key_generate():
-    movies = [key[0] for key in database.get_all_movies()]
+    movie_keys = [key[0] for key in database.get_all_movies()]
     
     while True:
-        key = os.getenv('MOVIE_KEY')+"".join(random.choice("0123456789") for _ in range(5))
+        new_key = os.getenv('MOVIE_KEY')+"".join(random.choice("0123456789") for _ in range(5))
         
-        if key not in movies:
-            break
-    
-    return key
+        if new_key not in movie_keys:
+            return new_key   
 
 
 
