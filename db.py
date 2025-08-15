@@ -186,13 +186,13 @@ class Users_DB:
 database = Users_DB()
 
 def key_generate():
-    movie_keys = [key[0] for key in database.get_all_movies()]
-    
+    movie_keys = [movie['key'] for movie in database.get_all_movies()]
+
     while True:
-        new_key = os.getenv('MOVIE_KEY')+"".join(random.choice("0123456789") for _ in range(5))
-        
+        new_key = os.getenv('MOVIE_KEY') + "".join(random.choice("0123456789") for _ in range(5))
         if new_key not in movie_keys:
-            return new_key   
+            return new_key
+   
 
 
 
