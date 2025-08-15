@@ -1,23 +1,15 @@
 from aiogram import Bot, Dispatcher, Router
 from aiogram.enums.chat_member_status import ChatMemberStatus
 from aiogram.types import Message 
-import os, asyncio, logging, dotenv
+import os, asyncio, dotenv
 from middleware import RoleCheckerMiddleware
 from aiogram.filters import CommandStart
 from keyboards import keyboard
 from db import database
 from handlers import admin_handler, user_handler
+from logger import logger
 
 dotenv.load_dotenv()
-
-# Logger sozlash
-logging.basicConfig(
-    filename='myapp.log',
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S"
-)
-logger = logging.getLogger(__name__)
 
 CHAT_ID = os.getenv('CHAT_ID')
 bot = Bot(os.getenv('BOT_TOKEN'))

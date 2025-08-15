@@ -4,7 +4,7 @@ from aiogram import Router, F, Bot
 from aiogram.types import Message, CallbackQuery
 from db import database
 from handlers import add_movie_form, find_movie, get_posts
-from main import logger
+from logger import logger
 
 dotenv.load_dotenv()
 bot = Bot(os.getenv('BOT_TOKEN'))

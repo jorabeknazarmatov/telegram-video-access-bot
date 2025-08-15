@@ -6,7 +6,7 @@ from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 from db import database
-from main import logger
+from logger import logger
 
 dotenv.load_dotenv()
 bot = Bot(os.getenv('BOT_TOKEN'))

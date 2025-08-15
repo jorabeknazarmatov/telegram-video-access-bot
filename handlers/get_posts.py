@@ -2,7 +2,7 @@ import os, dotenv, json, random
 from aiogram import Router, html, F, Bot
 from aiogram.types import CallbackQuery
 from db import database
-from main import logger
+from logger import logger
 
 
 dotenv.load_dotenv()

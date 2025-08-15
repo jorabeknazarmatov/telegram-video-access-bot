@@ -2,7 +2,7 @@ from aiogram import Router, html, F
 from aiogram.types import Message
 from db import database
 import os, dotenv, json
-from main import logger
+from logger import logger
 
 
 dotenv.load_dotenv()

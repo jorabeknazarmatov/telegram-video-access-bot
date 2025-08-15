@@ -7,7 +7,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 from keyboards import keyboard
 from db import database, key_generate
-from main import logger
+from logger import logger
 
 dotenv.load_dotenv()
 bot = Bot(os.getenv('BOT_TOKEN'))
