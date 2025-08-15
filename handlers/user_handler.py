@@ -29,7 +29,6 @@ async def movie_code(message: Message):
                 f"📽 {html.bold(movie['name'])}\n"
                 f"⭐️ IMDb: {movie['imdb']}  KP: {movie['kinopoisk']}\n"
                 f"🕒 Davomiyligi: {movie['duration'] // 60} soat {movie['duration'] % 60} daqiqa\n\n"
-                f"{movie['desc']}\n\n"
                 f"{' | '.join(f'#{cat}' for cat in json.loads(movie['category']))}\n\n"
                 f"📌 Kanalga obuna bo‘ling: @Premium_Kino_Club"
             ),
